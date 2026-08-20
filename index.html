@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IIT 2569 — Live Monitor | มทร.พระนคร</title>
+  <meta name="robots" content="noindex,nofollow"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans Thai','Sarabun','Segoe UI',sans-serif;background:#F8FAFC}
+    button:focus-visible{outline:2px solid #54008B;outline-offset:2px}
+    input:focus{outline:2px solid #54008B}
+  </style>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + Babel (CDN) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- window.storage shim (persistent storage for override) -->
+  <script>
+    window.storage = {
+      get: (k) => Promise.resolve(localStorage.getItem(k) ? {key:k, value:localStorage.getItem(k)} : null),
+      set: (k, v) => { localStorage.setItem(k, v); return Promise.resolve({key:k, value:v}); },
+      delete: (k) => { localStorage.removeItem(k); return Promise.resolve({key:k, deleted:true}); }
+    };
+  </script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useMemo, useEffect, useCallback } = React;
+
+
+/* =========================================================
+   IIT 2569 — Live Monitor (standalone) v1.1
+   มหาวิทยาลัยเทคโนโลยีราชมงคลพระนคร
+   IIT 2569 - เก็บข้อมูลผู้ตอบแบบวัด | 28 สิงหาคม 2569
+
+   ไฟล์นี้ถูก generate อัตโนมัติ — อย่าแก้โดยตรง
+   แก้ที่ iit2569_master.json แล้วรัน:  node gen_live.mjs
+   Generated: 2026-08-20T02:07:04.625Z
+   ========================================================= */
+
+const IIT=[{"id":1,"p":"นาง","n":"จิตรลัดดา จาดเกิด","pos":"ผู้ปฎิบัติงาน","st":"พนักงานราชการ-สายสนับสนุน","u":"กองกลาง","ph":"6915"},{"id":2,"p":"นางสาว","n":"จุฑามาศ ฉัตรสุริยาวงศ์","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองกลาง","ph":"6934"},{"id":3,"p":"นาย","n":"พัศวุฒ์ บริบูรณ์","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"กองกลาง","ph":"8185"},{"id":4,"p":"นาย","n":"สานิตย์ มิอาทร","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองกลาง","ph":"6916"},{"id":5,"p":"นางสาว","n":"กัญญาภัทร คงคีรี","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองคลัง","ph":"8152"},{"id":6,"p":"นางสาว","n":"ชัชราพันธ์ ก๊กมาศ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองคลัง","ph":"8237"},{"id":7,"p":"นางสาว","n":"ณัฐณิชา บุญกล่อม","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองนโยบายและแผน","ph":"6084"},{"id":8,"p":"นาย","n":"เชาวลิต ผันประเสริฐ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองนโยบายและแผน","ph":"8195"},{"id":9,"p":"นาย","n":"ชยพล หลักแหลม","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองบริหารงานบุคคล","ph":"6064"},{"id":10,"p":"นางสาว","n":"วันใหม่ สุกใส","pos":"หัวหน้างาน","st":"ข้าราชการ-สายสนับสนุน","u":"กองบริหารงานบุคคล","ph":"6061"},{"id":11,"p":"นางสาว","n":"สกุลนิตรา ตราชู","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองบริหารงานบุคคล","ph":"8314"},{"id":12,"p":"นางสาว","n":"ปฏิญญา สายสิญจน์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"กองพัฒนานักศึกษา","ph":"6962"},{"id":13,"p":"อาจารย์","n":"ชลธิศ ปิติภูมิสุขสันต์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":14,"p":"อาจารย์ ดร.","n":"ณัฐวุฒิ นามบุดดี","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":15,"p":"นางสาว","n":"นิตยา น่วมพร้อมพันธุ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":16,"p":"นาง","n":"วรรณกนก ทองยิ่ง","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างประจำ-สายสนับสนุน","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":17,"p":"นาย","n":"ศิวะณัฐ นาใจแก้ว","pos":"ผู้ปฎิบัติงาน","st":"พนักงานราชการ-สายสนับสนุน","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":18,"p":"อาจารย์ ดร.","n":"อัมภาภรณ์ พีรวณิชกุล","pos":"ผู้บริหาร","st":"ข้าราชการ-สายวิชาการ","u":"คณะครุศาสตร์อุตสาหกรรม","ph":"8245"},{"id":19,"p":"ผช.","n":"ขวัญฤทัย วงศ์กำแหงหาญ","pos":"หัวหน้างาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2354"},{"id":20,"p":"อาจารย์","n":"ญาณินท์ สายหยุด","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2381"},{"id":21,"p":"นาง","n":"ณฤสร วิชิต","pos":"หัวหน้างาน","st":"ข้าราชการ-สายสนับสนุน","u":"คณะบริหารธุรกิจ","ph":"2107"},{"id":22,"p":"ผช. ดร.","n":"ธนากร รัชตกุลพัฒน์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2354"},{"id":23,"p":"นางสาว","n":"นฤมล ไชยพร","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะบริหารธุรกิจ","ph":"2002"},{"id":24,"p":"อาจารย์","n":"พรคิด อั้นขาว","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2112"},{"id":25,"p":"อาจารย์","n":"รณพร พิทักษ์มวลชน","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2104"},{"id":26,"p":"อาจารย์","n":"วรัญญา สมศิริ","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะบริหารธุรกิจ","ph":"2109"},{"id":27,"p":"นาย","n":"วรเชษฐ์ อสิพงษ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะบริหารธุรกิจ","ph":"2307"},{"id":28,"p":"นางสาว","n":"วัชณิญา ใจหาญ","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะบริหารธุรกิจ","ph":"2101"},{"id":29,"p":"นาย","n":"ว่าที่ร้อยตรียุรวัฒนันท์ ศตทลธรรัตน์","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะบริหารธุรกิจ","ph":"2201"},{"id":30,"p":"นางสาว","n":"สาวินี เผื่อนโชติ","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะบริหารธุรกิจ","ph":"2304"},{"id":31,"p":"นาย","n":"ใย พันธ์สระน้อย","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างประจำ-สายสนับสนุน","u":"คณะบริหารธุรกิจ","ph":"2112"},{"id":32,"p":"ผช. ดร.","n":"กิติยศ ตั้งสัจจวงศ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":33,"p":"อาจารย์ ดร.","n":"นริศรา นาคเมธี","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":34,"p":"นางสาว","n":"ภัธรภัคร จอมแก้ว","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":35,"p":"นาย","n":"วรวุฒิ สาสิงห์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":36,"p":"รศ. ดร.","n":"วิไลวรรณ ลีนะกุล","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":37,"p":"ผช. ดร.","n":"สุนิสา สายอุปราช","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":38,"p":"อาจารย์","n":"เฟื่องลัดดา โสภา","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะวิทยาศาสตร์และเทคโนโลยี","ph":"4194"},{"id":39,"p":"นางสาว","n":"กมลวรรณ อาชวอาชานกุล","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":40,"p":"อาจารย์","n":"ชลิดา อุดมรักษาสกุล","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":41,"p":"นางสาว","n":"ธีร์นานา การุณย์นวสิริ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":42,"p":"อาจารย์","n":"นเรศ ชลังสุทธิ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":43,"p":"ผช.","n":"ปริศนา บุญศักดิ์","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":44,"p":"อาจารย์","n":"พรพิศ ศิริมา","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":45,"p":"อาจารย์","n":"รุ่งโรจน์ สุพงษ์วิบูลพันธ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":46,"p":"นางสาว","n":"วนรัตน์ มุกนนท์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":47,"p":"อาจารย์","n":"วรัญชลีย์ ทวีชัย","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":48,"p":"อาจารย์","n":"สมชาย เปาะทองคำ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":49,"p":"นาย","n":"สุนทร คำพินิจ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานราชการ-สายสนับสนุน","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":50,"p":"นางสาว","n":"อรจิรา พานอุป","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":51,"p":"ผช. ดร.","n":"เกรียงไกร เหลืองอำพล","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะวิศวกรรมศาสตร์","ph":"-"},{"id":52,"p":"อาจารย์","n":"ปทุมมา อินทร์อ่อน","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":53,"p":"อาจารย์","n":"ผกามาศ ใยทอง","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":54,"p":"นางสาว","n":"ภากุดา สิมะชูวงษ์","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":55,"p":"อาจารย์ ดร.","n":"ภูมิพัฒน์ ทองคำ","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":56,"p":"อาจารย์","n":"ระวิวรรณ ธรณี","pos":"หัวหน้างาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":57,"p":"อาจารย์ ดร.","n":"สราทตรา เล่งไพบูลย์","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":58,"p":"อาจารย์ ดร.","n":"สุวรรณา เข็มแดง","pos":"ผู้บริหาร","st":"ข้าราชการ-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":59,"p":"ผช.","n":"อังคณา แวซอเหาะ","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":60,"p":"นางสาว","n":"เบญจมาศ สระบัวคำ","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะศิลปศาสตร์","ph":"8357"},{"id":61,"p":"นางสาว","n":"นิตยา ปลื้มจันทึก","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"5010"},{"id":62,"p":"นางสาว","n":"พิมพวรรณ ภักดีสุวรรณ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"8125"},{"id":63,"p":"อาจารย์ ดร.","n":"ศาสตรา ศรีหาภาค","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"8126"},{"id":64,"p":"นาย","n":"ศิรวัชร์ พัฒคุ้ม","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"8119"},{"id":65,"p":"นาย","n":"สราวุธ มั่นวิชาชัย","pos":"ผู้ปฎิบัติงาน","st":"พนักงานราชการ-สายสนับสนุน","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"5014"},{"id":66,"p":"ผช. ดร.","n":"สาธิต เหล่าวัฒนพงษ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","ph":"8112"},{"id":67,"p":"อาจารย์ ดร.","n":"กรชนก บุญทร","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะอุตสาหกรรมสิ่งทอและออกแบบแฟชั่น","ph":"3046"},{"id":68,"p":"อาจารย์ ดร.","n":"ทวีศักดิ์ สาสงเคราะห์","pos":"ผู้ปฎิบัติงาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะอุตสาหกรรมสิ่งทอและออกแบบแฟชั่น","ph":"026653555"},{"id":69,"p":"นางสาว","n":"วิภาวดี ชัยสุรสีห์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะอุตสาหกรรมสิ่งทอและออกแบบแฟชั่น","ph":"3049"},{"id":70,"p":"นางสาว","n":"กัลยาพร อึ้งเจริญ","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"8268"},{"id":71,"p":"นางสาว","n":"จรัสพรรณ มิ่งโพธิ์เตี้ย","pos":"ผู้ปฎิบัติงาน","st":"พนักงานราชการ-สายสนับสนุน","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"8267"},{"id":72,"p":"นาย","n":"ฐิติ โพพี","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"8260"},{"id":73,"p":"นาย","n":"นพพร สกุลยืนยงสุข","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5232"},{"id":74,"p":"ผช.","n":"นิอร ดาวเจริญพร","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5231"},{"id":75,"p":"ผช. ดร.","n":"น้อมจิตต์ สุธีบุตร","pos":"หัวหน้างาน","st":"ข้าราชการ-สายวิชาการ","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"8264"},{"id":76,"p":"นางสาว","n":"ผการัตน์ หุ่นช่างทอง","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"8261"},{"id":77,"p":"นางสาว","n":"รติมากานต์ ห้วงหงษ์ทอง","pos":"หัวหน้างาน","st":"ข้าราชการ-สายสนับสนุน","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5223"},{"id":78,"p":"ผช. ดร.","n":"รุ่งฤทัย รำพึงจิต","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5221"},{"id":79,"p":"นาย","n":"อดิทัศน เอี่ยมรักษา","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5237"},{"id":80,"p":"นาย","n":"อัศม์เดชเดชา ปานท่าไข่","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5224"},{"id":81,"p":"ผช. ดร.","n":"เชาวลิต อุปฐาก","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีคหกรรมศาสตร์","ph":"5222"},{"id":82,"p":"ผช.","n":"ชาญ เดชอัศวนง","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีสื่อสารมวลชน","ph":"6820"},{"id":83,"p":"นาง","n":"วรวัฒนา พลายพลอยรัตน์","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"คณะเทคโนโลยีสื่อสารมวลชน","ph":"8219"},{"id":84,"p":"ผช. ดร.","n":"อภิญญ์พัทร์ กุสิยารังสิทธิ์","pos":"ผู้บริหาร","st":"พนักงานมหาวิทยาลัย-สายวิชาการ","u":"คณะเทคโนโลยีสื่อสารมวลชน","ph":"6823"},{"id":85,"p":"นางสาว","n":"อังคณา เผ่าชูศักดิ์","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"คณะเทคโนโลยีสื่อสารมวลชน","ph":"6861"},{"id":86,"p":"นางสาว","n":"ปุณยาพร วงศ์พานิช","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"วิทยาลัยการบริหารแห่งรัฐ","ph":"6070"},{"id":87,"p":"นาย","n":"พิเชษฐ์ หอมแสงประดิษฐ","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สถาบันภาษา","ph":"8322"},{"id":88,"p":"นางสาว","n":"ดวงฤทัย แก้วคำ","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สถาบันวิจัยและพัฒนา","ph":"8203"},{"id":89,"p":"นางสาว","n":"สุทธิดา ถุงแก้ว","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"สถาบันวิจัยและพัฒนา","ph":"6097"},{"id":90,"p":"นางสาว","n":"พัชราวลัย จีนอนงค์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สถาบันสหวิทยาการดิจิทัลและหุ่นยนต์","ph":"6195"},{"id":91,"p":"นางสาว","n":"จุรีย์ หอมแก้ว","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"สถาบันอัญมณี เครื่องประดับไทยและการออกแบบ","ph":"4214"},{"id":92,"p":"นาย","n":"อัสนี อากรนิธิ์","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักงานตรวจสอบภายใน","ph":"8151"},{"id":93,"p":"นางสาว","n":"อรพรรณ จันทรเกษมจิต","pos":"หัวหน้างาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักงานอธิการบดี","ph":"8141"},{"id":94,"p":"นาย","n":"พิศุทธิ์ เมืองใหญ่","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"สำนักวิทยบริการและเทคโนโลยีสารสนเทศ","ph":"8201"},{"id":95,"p":"นาย","n":"โยธิน หนูแดง","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักวิทยบริการและเทคโนโลยีสารสนเทศ","ph":"3900"},{"id":96,"p":"นางสาว","n":"โสภา ไทยลา","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักวิทยบริการและเทคโนโลยีสารสนเทศ","ph":"5202"},{"id":97,"p":"นางสาว","n":"นพมาศ ไทรม้า","pos":"ผู้ปฎิบัติงาน","st":"ลูกจ้างชั่วคราว","u":"สำนักส่งเสริมวิชาการและงานทะเบียน","ph":"6306"},{"id":98,"p":"นาย","n":"ปิโยรส เทพรส","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักส่งเสริมวิชาการและงานทะเบียน","ph":"6314"},{"id":99,"p":"นางสาว","n":"ละมัย บุตรลพ","pos":"ผู้บริหาร","st":"ข้าราชการ-สายสนับสนุน","u":"สำนักส่งเสริมวิชาการและงานทะเบียน","ph":"6308"},{"id":100,"p":"นางสาว","n":"วรางคณา อมรแก้ว","pos":"ผู้ปฎิบัติงาน","st":"พนักงานมหาวิทยาลัย-สายสนับสนุน","u":"สำนักส่งเสริมวิชาการและงานทะเบียน","ph":"6635"}];
+const CO=[{"id":1,"n":"นางสาววิรัลพัชร พรอนันท์วงษ์","u":"กองกลาง","pi":"6921","m":"0649328474"},{"id":2,"n":"น.ส.ดวงเดือน แม้นเหมือน","u":"กองคลัง","pi":"8184","m":"0816654004"},{"id":3,"n":"นางสาวสุกัญญา ศรีชนะ","u":"กองนโยบายและแผน","pi":"8160","m":"0959568786"},{"id":4,"n":"นางสาวศิราภรณ์ แสงสุวรรณ","u":"กองบริหารงานบุคคล","pi":"8318","m":"0812465452"},{"id":5,"n":"นางสาวปฏิญญา สายสิญจน์","u":"กองพัฒนานักศึกษา","pi":"6962","m":"0654519291"},{"id":6,"n":"นายศิวะณัฐ นาใจแก้ว","u":"คณะครุศาสตร์อุตสาหกรรม","pi":"8245","m":"0961646551"},{"id":7,"n":"นางสาวกนกอร อรุณทวีรุ่งโรจน์","u":"คณะบริหารธุรกิจ","pi":"2201","m":"0850637360"},{"id":8,"n":"สุริโย ก่อวาณิชกุล","u":"คณะวิทยาศาสตร์และเทคโนโลยี","pi":"4194","m":"0845532244"},{"id":9,"n":"เนตรนภา แสงเงิน","u":"คณะวิศวกรรมศาสตร์","pi":"4108","m":"0897641009"},{"id":10,"n":"น.ส.พชรชล จันทร์ศรี","u":"คณะศิลปศาสตร์","pi":"8357","m":"0921232888"},{"id":11,"n":"โปรดปราน เพชรสด","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","pi":"5024","m":"0814414799"},{"id":12,"n":"นายศิรวัชร์ พัฒคุ้ม","u":"คณะสถาปัตยกรรมศาสตร์และการออกแบบ","pi":"8119","m":"0833801491"},{"id":13,"n":"สมใจ แซ่ภู่","u":"คณะอุตสาหกรรมสิ่งทอและออกแบบแฟชั่น","pi":"3054","m":"0837155455"},{"id":14,"n":"น.ส.รติมากานต์ ห้วยหงษ์ทอง","u":"คณะเทคโนโลยีคหกรรมศาสตร์","pi":"5223","m":"0819225504"},{"id":15,"n":"นางสาวกัลยาณี หนูวรรณะ","u":"คณะเทคโนโลยีสื่อสารมวลชน","pi":"6821","m":"0637296306"},{"id":16,"n":"พิเชษฐ์ หอมแสงประดิษฐ","u":"สถาบันภาษา","pi":"8322","m":"0891254749"},{"id":17,"n":"ดวงฤทัย แก้วคำ","u":"สถาบันวิจัยและพัฒนา","pi":"8203","m":"0909963663"},{"id":18,"n":"นางสาวรุ่งอรุณ คงสวัสดิ์","u":"สถาบันสหวิทยาการดิจิทัลและหุ่นยนต์","pi":"6191","m":"0621782312"},{"id":19,"n":"นางสาวรัชนี ต่อเงิน","u":"สำนักวิทยบริการและเทคโนโลยีสารสนเทศ","pi":"6780","m":"0967855479"},{"id":20,"n":"นางสาววรางคณา อมรแก้ว","u":"สำนักส่งเสริมวิชาการและงานทะเบียน","pi":"6635","m":"0824919551"},{"id":21,"n":"นางสาวปุณยาพร วงศ์พานิช","u":"วิทยาลัยการบริหารแห่งรัฐ","pi":"6070","m":"-"},{"id":22,"n":"นางสาวจุรีย์ หอมแก้ว","u":"สถาบันอัญมณี เครื่องประดับไทยและการออกแบบ","pi":"4214","m":"-"},{"id":23,"n":"นางสาวอรพรรณ จันทรเกษมจิต","u":"สำนักงานอธิการบดี","pi":"8141","m":"-"},{"id":24,"n":"นายอัสนี อากรนิธิ์","u":"สำนักงานตรวจสอบภายใน","pi":"8151","m":"-"}];
+
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQSUHxAWvVTcUPkkQldXKa5Fr2n2xK0iDxVPhVNN-nX9TMjsbkRXRy6IivFBCkBWcS520ggQaV_AGQI/pub?gid=2074695179&single=true&output=csv";
+const FORM_URL="https://forms.gle/4PZQzTGBW1KpnV7DA";
+const NONE_OPT="ยังไม่มีผู้เข้าร่วมในขณะนี้";
+const COL_UNIT="หน่วยงานของท่าน";
+const COL_LIST="รายชื่อผู้เข้าร่วมแล้ว - ";
+const COL_NOTE="หมายเหตุ - ";
+const COL_BY="ชื่อ-นามสกุล ผู้กรอก (ผู้ประสานงาน)";
+const SKEY="iit-live-override";
+
+const P="#54008B",PL="#7B2FB8";
+
+const SHORT={
+ "สำนักส่งเสริมวิชาการและงานทะเบียน":"สวท.",
+ "สำนักวิทยบริการและเทคโนโลยีสารสนเทศ":"สวส.",
+ "สถาบันสหวิทยาการดิจิทัลและหุ่นยนต์":"สถ.ดิจิทัลฯ",
+ "สถาบันอัญมณี เครื่องประดับไทยและการออกแบบ":"สถ.อัญมณีฯ",
+ "คณะสถาปัตยกรรมศาสตร์และการออกแบบ":"คณะสถาปัตย์ฯ",
+ "คณะอุตสาหกรรมสิ่งทอและออกแบบแฟชั่น":"คณะสิ่งทอฯ",
+ "คณะเทคโนโลยีคหกรรมศาสตร์":"คณะคหกรรมฯ",
+ "คณะเทคโนโลยีสื่อสารมวลชน":"คณะสื่อสารฯ",
+ "คณะวิทยาศาสตร์และเทคโนโลยี":"คณะวิทย์ฯ",
+ "คณะครุศาสตร์อุตสาหกรรม":"คณะครุศาสตร์ฯ",
+ "กองบริหารงานบุคคล":"กบ.",
+ "กองนโยบายและแผน":"กนผ.",
+ "กองพัฒนานักศึกษา":"กพศ.",
+ "สถาบันวิจัยและพัฒนา":"สวพ.",
+ "สำนักงานตรวจสอบภายใน":"ตสน.",
+ "สำนักงานอธิการบดี":"สอธ.",
+ "วิทยาลัยการบริหารแห่งรัฐ":"วบร."
+};
+const su=(u)=>SHORT[u]||u;
+
+/* ---------- CSV ---------- */
+const parseCSV=(text)=>{
+  const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++} else q=false } else f+=c }
+    else if(c==='"') q=true;
+    else if(c===","){ row.push(f);f="" }
+    else if(c==="\n"){ row.push(f);f="";rows.push(row);row=[] }
+    else if(c!=="\r") f+=c;
+  }
+  if(f||row.length){row.push(f);rows.push(row)}
+  return rows.filter(r=>r.some(x=>x.trim()!==""));
+};
+const norm=(s)=>(s||"").replace(/\s+/g," ").trim();
+
+const aggregate=(rows)=>{
+  const empty={present:new Map(),notes:[],unmatched:[],last:null,submits:0};
+  if(!rows||!rows.length) return empty;
+  const head=rows[0].map(norm);
+  const iUnit=head.indexOf(COL_UNIT);
+  if(iUnit<0) return empty;
+  const iBy=head.indexOf(COL_BY);
+  const master=new Map(IIT.map(d=>[norm(d.n),d]));
+  const present=new Map(),notes=[],unmatched=[];
+  let last=null;
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r],ts=norm(row[0]);
+    if(ts) last=ts;
+    const unit=norm(row[iUnit]); if(!unit) continue;
+    const iL=head.indexOf(COL_LIST+unit);
+    const iN=head.indexOf(COL_NOTE+unit);
+    if(iL>=0&&row[iL]){
+      norm(row[iL]).split(",").map(norm).filter(Boolean).forEach(nm=>{
+        if(nm===NONE_OPT) return;
+        const hit=master.get(nm);
+        if(hit){ if(!present.has(hit.id)) present.set(hit.id,ts) }
+        else unmatched.push({name:nm,unit,ts});
+      });
+    }
+    if(iN>=0&&norm(row[iN])) notes.push({unit,text:norm(row[iN]),ts,by:iBy>=0?norm(row[iBy]):""});
+  }
+  return {present,notes,unmatched,last,submits:rows.length-1};
+};
+
+/* ---------- UI bits ---------- */
+const Btn=({onClick,children,bg=P,color="#fff",bd="none",dis})=>(
+  <button onClick={onClick} disabled={dis} style={{padding:"8px 16px",borderRadius:8,border:bd,background:dis?"#CBD5E1":bg,color,fontSize:14,fontWeight:600,cursor:dis?"default":"pointer"}}>{children}</button>
+);
+const Card=({children,accent})=>(
+  <div style={{background:"#fff",borderRadius:12,padding:16,boxShadow:"0 1px 3px rgba(0,0,0,.08)",borderTop:accent?`4px solid ${accent}`:"none"}}>{children}</div>
+);
+
+/* ---------- App ---------- */
+function App(){
+  const [raw,setRaw]=useState(null);
+  const [err,setErr]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [at,setAt]=useState(null);
+  const [ov,setOv]=useState({});
+  const [ovLoaded,setOvLoaded]=useState(false);
+  const [demo,setDemo]=useState(false);
+  const [openU,setOpenU]=useState({});
+  const [copied,setCopied]=useState("");
+  const [q,setQ]=useState("");
+  const [onlyMissing,setOnlyMissing]=useState(false);
+
+  useEffect(()=>{(async()=>{
+    try{const r=await window.storage.get(SKEY);if(r&&r.value)setOv(JSON.parse(r.value))}catch(e){}
+    finally{setOvLoaded(true)}
+  })()},[]);
+  useEffect(()=>{if(ovLoaded){(async()=>{try{await window.storage.set(SKEY,JSON.stringify(ov))}catch(e){}})()}},[ov,ovLoaded]);
+
+  const load=useCallback(async()=>{
+    setBusy(true);setErr("");
+    try{
+      const res=await fetch(CSV_URL+"&_="+Date.now());
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const t=await res.text();
+      if(t.trim().startsWith("<")) throw new Error("ได้ HTML แทน CSV — ตรวจว่า Publish to web เลือก CSV แล้วหรือยัง");
+      setRaw(parseCSV(t));setDemo(false);setAt(new Date());
+    }catch(e){ setErr(e.message||"ดึงข้อมูลไม่สำเร็จ") }
+    finally{ setBusy(false) }
+  },[]);
+  useEffect(()=>{load()},[load]);
+
+  const loadDemo=()=>{
+    const us=[...new Set(IIT.map(d=>d.u))].sort();
+    const h=["Timestamp",COL_UNIT];
+    us.forEach(u=>{h.push(COL_LIST+u);h.push(COL_NOTE+u)});
+    h.push(COL_BY,"เบอร์ติดต่อกลับ");
+    const mk=(unit,names,note,mm)=>{
+      const r=new Array(h.length).fill("");
+      r[0]="28/8/2569 13:"+String(mm).padStart(2,"0");r[1]=unit;
+      r[h.indexOf(COL_LIST+unit)]=names.join(", ");
+      if(note)r[h.indexOf(COL_NOTE+unit)]=note;
+      r[h.indexOf(COL_BY)]="(ทดสอบ)";return r;
+    };
+    const rows=[h];let mm=31;
+    us.forEach((u,i)=>{
+      if(i%7===3) return;
+      const ppl=IIT.filter(d=>d.u===u).map(d=>d.n);
+      const take=Math.max(1,Math.ceil(ppl.length*(i%3===0?0.5:0.85)));
+      rows.push(mk(u,ppl.slice(0,take),i%5===0?"ลาป่วย 1 ราย":"",mm++));
+      if(ppl.length>6) rows.push(mk(u,ppl.slice(take,take+2),"",mm++));
+    });
+    rows.push(mk(us[6],["สมชาย ทดสอบระบบ"],"ชื่อนี้ไม่มีในระบบ",58));
+    setRaw(rows);setDemo(true);setErr("");setAt(new Date());
+  };
+
+  const agg=useMemo(()=>aggregate(raw),[raw]);
+  const stOf=useCallback((id)=>{
+    if(ov[id]==="in")return true;
+    if(ov[id]==="out")return false;
+    return agg.present.has(id);
+  },[ov,agg]);
+
+  const units=useMemo(()=>[...new Set(IIT.map(d=>d.u))].sort(),[]);
+  const done=IIT.filter(d=>stOf(d.id)).length;
+  const pct=Math.round(done/IIT.length*100);
+
+  const rows=useMemo(()=>units.map(u=>{
+    const ppl=IIT.filter(d=>d.u===u);
+    const dn=ppl.filter(d=>stOf(d.id)).length;
+    return{u,short:su(u),total:ppl.length,done:dn,ppl,co:CO.find(c=>c.u===u),miss:ppl.filter(d=>!stOf(d.id))};
+  }),[units,stOf]);
+
+  const sorted=useMemo(()=>[...rows].sort((a,b)=>(a.done/a.total)-(b.done/b.total)||b.total-a.total),[rows]);
+  const shown=useMemo(()=>{
+    let r=sorted;
+    if(onlyMissing) r=r.filter(x=>x.done<x.total);
+    if(q.trim()){const t=q.trim().toLowerCase();r=r.filter(x=>x.u.toLowerCase().includes(t)||x.ppl.some(d=>d.n.toLowerCase().includes(t)))}
+    return r;
+  },[sorted,onlyMissing,q]);
+
+  const totalMiss=useMemo(()=>rows.reduce((s,r)=>s+r.miss.length,0),[rows]);
+
+  const toggle=(id,cur)=>setOv(p=>({...p,[id]:cur?"out":"in"}));
+  const clearOv=async()=>{setOv({});try{await window.storage.delete(SKEY)}catch(e){}};
+  const ovN=Object.keys(ov).length;
+  const tfmt=(d)=>d?d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}):"-";
+
+  const copyUnit=async(r)=>{
+    const now=new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+    const txt=`[${r.u}] ยังไม่เข้าร่วม ${r.miss.length}/${r.total} คน\n\n`
+      + r.miss.map((d,i)=>`${i+1}. ${d.n}`).join("\n")
+      + `\n\nรบกวนติดตามให้เข้า Zoom ด้วยครับ\nข้อมูล ณ ${now} น.`;
+    try{ await navigator.clipboard.writeText(txt) }
+    catch(e){ const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove() }
+    setCopied(r.u);setTimeout(()=>setCopied(""),2000);
+  };
+
+  return <div style={{minHeight:"100vh",background:"#F8FAFC",fontFamily:"'Noto Sans Thai','Segoe UI',sans-serif"}}>
+
+    <div style={{background:`linear-gradient(135deg,${P},${PL})`,padding:"18px 24px",color:"#fff"}}>
+      <div style={{fontSize:13,opacity:.8,letterSpacing:1}}>ITA 2569 | มทร.พระนคร</div>
+      <div style={{fontSize:22,fontWeight:700,marginTop:4}}>Live Monitor — ยอดผู้เข้าร่วม IIT <span style={{fontSize:13,fontWeight:400,opacity:.7}}>v1.1</span></div>
+      <div style={{fontSize:13,opacity:.7,marginTop:2}}>28 สิงหาคม 2569 | ข้อมูลจาก Google Form</div>
+    </div>
+
+    <div style={{padding:"20px 16px",maxWidth:1000,margin:"0 auto",display:"flex",flexDirection:"column",gap:16}}>
+
+      <div style={{background:`linear-gradient(135deg,${P}22,${PL}22)`,borderRadius:12,padding:20,border:`1px solid ${P}33`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:12}}>
+          <div style={{fontSize:17,fontWeight:700,color:P}}>ความคืบหน้ารวม</div>
+          {demo&&<span style={{background:"#F59E0B",color:"#fff",padding:"4px 10px",borderRadius:6,fontSize:13,fontWeight:600}}>DEMO MODE</span>}
+        </div>
+        <div style={{background:"#E2E8F0",borderRadius:8,height:34,overflow:"hidden",marginBottom:10,position:"relative"}}>
+          <div style={{height:"100%",width:pct+"%",background:`linear-gradient(90deg,${P},#10B981)`,transition:"width .5s"}}/>
+          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16,color:pct>50?"#fff":"#334155"}}>{done}/{IIT.length} คน ({pct}%)</div>
+        </div>
+        <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:14,color:"#475569"}}>
+          <span>ยังขาด <b style={{color:"#EF4444"}}>{totalMiss}</b> คน</span>
+          <span>หน่วยครบ <b style={{color:"#10B981"}}>{rows.filter(r=>r.done===r.total).length}</b>/{units.length}</span>
+          <span>Submit <b>{agg.submits}</b> ครั้ง</span>
+          {ovN>0&&<span>Override <b style={{color:"#F59E0B"}}>{ovN}</b></span>}
+        </div>
+      </div>
+
+      <Card>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+          <Btn onClick={load} dis={busy}>{busy?"กำลังโหลด...":"รีเฟรชข้อมูล"}</Btn>
+          <Btn onClick={loadDemo} bg="#fff" color="#F59E0B" bd="1px solid #F59E0B">โหมดทดสอบ</Btn>
+          <Btn onClick={()=>window.open(FORM_URL,"_blank")} bg="#fff" color={P} bd={`1px solid ${P}`}>เปิดฟอร์ม</Btn>
+          {ovN>0&&<Btn onClick={clearOv} bg="#fff" color="#EF4444" bd="1px solid #EF4444">ล้าง Override</Btn>}
+          <div style={{fontSize:13,color:"#64748B",marginLeft:"auto"}}>
+            ดึงเมื่อ {tfmt(at)}{agg.last?" | ล่าสุดใน Sheet: "+agg.last:""}
+          </div>
+        </div>
+      </Card>
+
+      {err&&<div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:12,padding:16,color:"#DC2626",fontSize:14}}>
+        <b>ดึงข้อมูลไม่สำเร็จ:</b> {err}
+        <div style={{color:"#991B1B",fontSize:13,marginTop:4}}>ตรวจว่า Sheet ถูก Publish to web แบบ CSV แล้ว หรือกด "โหมดทดสอบ" เพื่อดูหน้าตาระบบ</div>
+      </div>}
+
+      <Card>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center",marginBottom:12}}>
+          <div style={{fontSize:17,fontWeight:600,color:P}}>รายหน่วยงาน</div>
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="ค้นหาหน่วยงานหรือชื่อ..." style={{padding:"6px 12px",borderRadius:8,border:`2px solid ${q?P:"#E2E8F0"}`,fontSize:14,outline:"none",flex:1,minWidth:160}}/>
+          <label style={{display:"flex",alignItems:"center",gap:6,fontSize:14,color:"#475569",cursor:"pointer"}}>
+            <input type="checkbox" checked={onlyMissing} onChange={e=>setOnlyMissing(e.target.checked)}/>เฉพาะที่ยังไม่ครบ
+          </label>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {!shown.length&&<div style={{color:"#94A3B8",fontSize:15,padding:8}}>ไม่พบหน่วยงานที่ตรงเงื่อนไข</div>}
+          {shown.map(r=>{
+            const ok=r.done===r.total,p=Math.round(r.done/r.total*100),op=openU[r.u];
+            return <div key={r.u} style={{background:ok?"#F0FDF4":"#FAFAFE",borderRadius:8,padding:"8px 12px"}}>
+              <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+                <div onClick={()=>setOpenU(o=>({...o,[r.u]:!o[r.u]}))} style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",flex:1,minWidth:240,cursor:"pointer"}}>
+                  <div style={{width:14,fontSize:13,color:"#94A3B8"}}>{op?"▾":"▸"}</div>
+                  <div style={{minWidth:118,fontSize:14,fontWeight:600,color:ok?"#10B981":"#334155"}}>{r.short}</div>
+                  <div style={{flex:1,minWidth:80,background:"#E2E8F0",borderRadius:4,height:16,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:p+"%",background:ok?"#10B981":p>0?"#F59E0B":"#E2E8F0",transition:"width .3s"}}/>
+                  </div>
+                  <div style={{minWidth:50,fontSize:14,fontWeight:600,textAlign:"right",color:ok?"#10B981":"#334155"}}>{r.done}/{r.total}</div>
+                  {!ok&&r.co&&<div style={{fontSize:12,color:"#64748B",minWidth:165}}>{r.co.n} {r.co.m!=="-"?r.co.m:r.co.pi}</div>}
+                </div>
+                {!ok&&<button onClick={()=>copyUnit(r)} title={"คัดลอกรายชื่อที่ขาด "+r.miss.length+" คน"} style={{padding:"5px 12px",borderRadius:6,border:`1px solid ${copied===r.u?"#10B981":P}`,background:copied===r.u?"#10B981":"#fff",color:copied===r.u?"#fff":P,fontSize:13,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap"}}>
+                  {copied===r.u?"คัดลอกแล้ว":"คัดลอกรายชื่อที่ขาด ("+r.miss.length+")"}
+                </button>}
+              </div>
+              {op&&<div style={{marginTop:8,paddingLeft:24,display:"flex",flexDirection:"column",gap:4}}>
+                {r.ppl.map(d=>{const s=stOf(d.id);return <div key={d.id} style={{display:"flex",gap:8,alignItems:"center",fontSize:14}}>
+                  <span style={{width:18}}>{s?"✅":"⬜"}</span>
+                  <span style={{flex:1,color:s?"#10B981":"#334155"}}>{d.n}</span>
+                  {ov[d.id]&&<span style={{fontSize:11,background:"#FEF3C7",color:"#92400E",padding:"1px 6px",borderRadius:4}}>manual</span>}
+                  <button onClick={()=>toggle(d.id,s)} style={{padding:"3px 10px",borderRadius:6,border:`1px solid ${s?"#EF4444":"#10B981"}`,background:"#fff",color:s?"#EF4444":"#10B981",fontSize:12,cursor:"pointer"}}>{s?"ยกเลิก":"ทำเครื่องหมาย"}</button>
+                </div>})}
+              </div>}
+            </div>;
+          })}
+        </div>
+      </Card>
+
+      {agg.unmatched.length>0&&<Card accent="#F59E0B">
+        <div style={{fontSize:17,fontWeight:600,color:"#B45309",marginBottom:6}}>ชื่อที่จับคู่ไม่ได้ ({agg.unmatched.length})</div>
+        <div style={{fontSize:13,color:"#92400E",marginBottom:10}}>ชื่อเหล่านี้มีใน Form แต่ไม่ตรงกับรายชื่อในระบบ — อาจเป็นการเปลี่ยนตัวผู้ตอบ หรือพิมพ์ผิด</div>
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          {agg.unmatched.map((x,i)=><div key={i} style={{display:"flex",gap:10,padding:"6px 10px",background:"#FFFBEB",borderRadius:6,fontSize:14,flexWrap:"wrap"}}>
+            <span style={{fontWeight:500,minWidth:150}}>{x.name}</span>
+            <span style={{color:"#64748B",fontSize:13}}>{su(x.unit)}</span>
+            <span style={{color:"#94A3B8",fontSize:12,marginLeft:"auto"}}>{x.ts}</span>
+          </div>)}
+        </div>
+      </Card>}
+
+      {agg.notes.length>0&&<Card>
+        <div style={{fontSize:17,fontWeight:600,color:P,marginBottom:12}}>หมายเหตุจากผู้ประสาน ({agg.notes.length})</div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {agg.notes.map((n,i)=><div key={i} style={{background:"#F8FAFC",borderRadius:6,padding:"8px 12px",fontSize:14}}>
+            <div style={{fontWeight:600,color:P,fontSize:13}}>{su(n.unit)} <span style={{color:"#94A3B8",fontWeight:400}}>{n.by} | {n.ts}</span></div>
+            <div style={{color:"#334155",marginTop:2}}>{n.text}</div>
+          </div>)}
+        </div>
+      </Card>}
+
+      <div style={{textAlign:"center",padding:"8px 0 24px",color:"#94A3B8",fontSize:13}}>
+        จัดทำโดย สวท. | ผู้ตอบ {IIT.length} คน จาก {units.length} หน่วยงาน
+      </div>
+    </div>
+  </div>;
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
